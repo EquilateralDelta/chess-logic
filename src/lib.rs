@@ -61,7 +61,7 @@ impl fmt::Display for Tile {
 }
 
 pub struct Game {
-    field: [[Tile; 8]; 8],
+    pub field: [[Tile; 8]; 8],
 }
 
 impl Game {
