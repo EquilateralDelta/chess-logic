@@ -12,6 +12,14 @@ pub enum Rank {
     Eight = 7,
 }
 
+impl Rank {
+    pub fn iter() -> std::slice::Iter<'static, Rank> {
+        use Rank::*;
+        static RANKS: [Rank; 8] = [One, Two, Three, Four, Five, Six, Seven, Eight];
+        RANKS.iter()
+    }
+}
+
 #[derive(Clone, Copy)]
 pub enum File {
     A = 0,
@@ -24,10 +32,18 @@ pub enum File {
     H = 7,
 }
 
+impl File {
+    pub fn iter() -> std::slice::Iter<'static, File> {
+        use File::*;
+        static FILES: [File; 8] = [A, B, C, D, E, F, G, H];
+        FILES.iter()
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct Position {
-    rank: Rank,
-    file: File,
+    pub rank: Rank,
+    pub file: File,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -93,7 +109,7 @@ impl fmt::Display for Tile {
 
 pub type Field = [[Tile; 8]; 8];
 
-trait FieldTrait {
+pub trait FieldTrait {
     fn get(&self, position: Position) -> Tile;
 }
 
