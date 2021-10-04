@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Rank {
     One = 0,
     Two = 1,
@@ -20,7 +20,7 @@ impl Rank {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum File {
     A = 0,
     B = 1,
@@ -40,7 +40,7 @@ impl File {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Position {
     pub rank: Rank,
     pub file: File,
