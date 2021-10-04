@@ -1,6 +1,36 @@
 use std::fmt;
 
 #[derive(Clone, Copy)]
+pub enum Rank {
+    One = 0,
+    Two = 1,
+    Three = 2,
+    Four = 3,
+    Five = 4,
+    Six = 5,
+    Seven = 6,
+    Eight = 7,
+}
+
+#[derive(Clone, Copy)]
+pub enum File {
+    A = 0,
+    B = 1,
+    C = 2,
+    D = 3,
+    E = 4,
+    F = 5,
+    G = 6,
+    H = 7,
+}
+
+#[derive(Clone, Copy)]
+pub struct Position {
+    rank: Rank,
+    file: File,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Figure {
     Pawn,
     Knight,
@@ -24,7 +54,7 @@ impl fmt::Display for Figure {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Color {
     White,
     Black,
@@ -40,6 +70,7 @@ impl fmt::Display for Color {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
     Empty,
     Occupied(Color, Figure),
@@ -60,8 +91,20 @@ impl fmt::Display for Tile {
     }
 }
 
+pub type Field = [[Tile; 8]; 8];
+
+trait FieldTrait {
+    fn get(&self, position: Position) -> Tile;
+}
+
+impl FieldTrait for Field {
+    fn get(&self, position: Position) -> Tile {
+        self[position.rank as usize][position.file as usize]
+    }
+}
+
 pub struct Game {
-    pub field: [[Tile; 8]; 8],
+    pub field: Field,
 }
 
 impl Game {
@@ -135,5 +178,31 @@ mod tests {
                 " w♖  w♘  w♗  w♕  w♔  w♗  w♘  w♖ ",
             ]
         );
+    }
+
+    #[test]
+    fn test_black_queen_initial_position() {
+        let game = Game::new();
+        let queen_tile = game.field.get(Position {
+            rank: Rank::Eight,
+            file: File::D,
+        });
+        assert_eq!(queen_tile, Tile::Occupied(Color::Black, Figure::Queen))
+    }
+
+    #[test]
+    fn test_white_rooks_initial_position() {
+        let game = Game::new();
+        let first_rook_tile = game.field.get(Position {
+            rank: Rank::One,
+            file: File::A,
+        });
+        let second_rook_tile = game.field.get(Position {
+            rank: Rank::One,
+            file: File::H,
+        });
+        let white_rook = Tile::Occupied(Color::White, Figure::Rook);
+        assert_eq!(first_rook_tile, white_rook);
+        assert_eq!(second_rook_tile, white_rook);
     }
 }
