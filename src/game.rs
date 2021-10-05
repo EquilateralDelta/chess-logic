@@ -2,26 +2,12 @@ use std::fmt;
 
 use crate::{Color, Figure, Position, Tile};
 
-pub type Field = [[Tile; 8]; 8];
+pub struct Field([[Tile; 8]; 8]);
 
-pub trait FieldTrait {
-    fn get(&self, position: Position) -> Tile;
-}
-
-impl FieldTrait for Field {
-    fn get(&self, position: Position) -> Tile {
-        self[position.rank as usize][position.file as usize]
-    }
-}
-
-pub struct Game {
-    pub field: Field,
-}
-
-impl Game {
-    pub fn new() -> Self {
-        let mut field: Self = Self {
-            field: Default::default(),
+impl Field {
+    fn new() -> Self {
+        let mut result = Self {
+            0: Default::default()
         };
         let major_figure_line = [
             Figure::Rook,
@@ -35,20 +21,40 @@ impl Game {
         ];
         let pawn_line = [Figure::Pawn; 8];
 
-        field.set_figure_line(0, Color::White, major_figure_line);
-        field.set_figure_line(1, Color::White, pawn_line);
+        result.set_figure_line(0, Color::White, major_figure_line);
+        result.set_figure_line(1, Color::White, pawn_line);
 
-        field.set_figure_line(7, Color::Black, major_figure_line);
-        field.set_figure_line(6, Color::Black, pawn_line);
+        result.set_figure_line(7, Color::Black, major_figure_line);
+        result.set_figure_line(6, Color::Black, pawn_line);
 
-        field
+        result
     }
 
     fn set_figure_line(&mut self, line: usize, color: Color, figures: [Figure; 8]) {
-        self.field[line]
+        self.0[line]
             .iter_mut()
             .zip(figures.iter())
             .for_each(|(tile, &figure)| *tile = Tile::Occupied(color, figure));
+    }
+
+    fn iter(&self) -> std::slice::Iter<'_, [Tile; 8]>{
+        self.0.iter()
+    }
+
+    pub fn get(&self, position: Position) -> Tile {
+        self.0[position.rank as usize][position.file as usize]
+    }
+}
+
+pub struct Game {
+    pub field: Field,
+}
+
+impl Game {
+    pub fn new() -> Self {
+        Game {
+            field: Field::new(),
+        }
     }
 }
 
