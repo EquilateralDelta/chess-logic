@@ -30,6 +30,15 @@ pub enum Color {
     Black,
 }
 
+impl Color {
+    pub fn opposite(&self) -> Color {
+        match self {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+        }
+    }
+}
+
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let character = match self {

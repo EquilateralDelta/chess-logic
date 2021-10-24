@@ -1,3 +1,6 @@
+use std::convert::{TryInto};
+use std::mem::transmute;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Rank {
     One = 0,
@@ -15,6 +18,19 @@ impl Rank {
         use Rank::*;
         static RANKS: [Rank; 8] = [One, Two, Three, Four, Five, Six, Seven, Eight];
         RANKS.iter()
+    }
+}
+
+impl TryInto<Rank> for i8 {
+    type Error = ();
+
+    fn try_into(self) -> Result<Rank, Self::Error> {
+        if self >= 0 && self <= 7 {
+            let rank: Rank = unsafe { transmute(self) };
+            Ok(rank)
+        } else {
+            Err(())
+        }
     }
 }
 
@@ -38,8 +54,34 @@ impl File {
     }
 }
 
+impl TryInto<File> for i8 {
+    type Error = ();
+
+    fn try_into(self) -> Result<File, Self::Error> {
+        if self >= 0 && self <= 7 {
+            let file: File = unsafe { transmute(self) };
+            Ok(file)
+        } else {
+            Err(())
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Position {
     pub rank: Rank,
     pub file: File,
+}
+
+impl Position {
+    pub fn add(&self, vector: (i8, i8)) -> Option<Position> {
+        let (rank_change, file_change) = vector;
+        let rank: Option<Rank> = ((self.rank as i8) + rank_change).try_into().ok();
+        let file: Option<File> = ((self.file as i8) + file_change).try_into().ok();
+        if let (Some(rank), Some(file)) = (rank, file) {
+            Some(Position { rank, file })
+        } else {
+            None
+        }
+    }
 }
