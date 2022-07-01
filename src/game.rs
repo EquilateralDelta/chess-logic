@@ -49,11 +49,11 @@ impl Field {
     }
 
     pub fn get(&self, position: Position) -> Tile {
-        self.0[position.rank as usize][position.file as usize]
+        self.0[position.rank as usize - 1][position.file as usize - 1]
     }
 
     fn set(&mut self, position: Position, tile: Tile) {
-        self.0[position.rank as usize][position.file as usize] = tile;
+        self.0[position.rank as usize - 1][position.file as usize - 1] = tile;
     }
 
     pub fn moves_available(&self, position: Position, turn: Color) -> Vec<Position> {
@@ -111,7 +111,7 @@ impl Field {
                         (1, 2),
                         (1, -2),
                         (-1, 2),
-                        (-2, -1),
+                        (-1, -2),
                     ] {
                         self.fill_moves_by_direction(
                             position,
@@ -185,6 +185,7 @@ impl Field {
             _ => (),
         }
 
+        result.sort();
         result
     }
 
@@ -258,13 +259,14 @@ impl Game {
         self.field.moves_available(position, self.turn)
     }
 
-    pub fn make_move(&mut self, from: Position, to: Position) {
+    pub fn make_move(&mut self, from: Position, to: Position) -> Result<(), ()> {
         let moves = self.field.moves_available(from, self.turn);
         if !moves.contains(&to) {
-            panic!("Illegal move");
+            return Err(());
         }
         self.field.make_move(from, to);
         self.turn = self.turn.opposite();
+        Ok(())
     }
 }
 
@@ -284,9 +286,25 @@ impl fmt::Display for Game {
 
 #[cfg(test)]
 mod tests {
-    use crate::{File, Rank};
+    use std::convert::TryInto;
 
     use super::*;
+
+    macro_rules! pos {
+        ($p:ident) => {
+            TryInto::<Position>::try_into(stringify!($p)).unwrap()
+        };
+    }
+
+    macro_rules! pos_list {
+        ($($p:ident),+) => {
+            {
+                let mut pos_list = vec![$(pos!($p)),+];
+                pos_list.sort();
+                pos_list
+            }
+        };
+    }
 
     #[test]
     fn test_display_newly_created_field() {
@@ -312,26 +330,53 @@ mod tests {
     #[test]
     fn test_black_queen_initial_position() {
         let game = Game::new();
-        let queen_tile = game.field.get(Position {
-            rank: Rank::Eight,
-            file: File::D,
-        });
+        let queen_tile = game.field.get(pos!(d8));
         assert_eq!(queen_tile, Tile::Occupied(Color::Black, Figure::Queen))
     }
 
     #[test]
     fn test_white_rooks_initial_position() {
         let game = Game::new();
-        let first_rook_tile = game.field.get(Position {
-            rank: Rank::One,
-            file: File::A,
-        });
-        let second_rook_tile = game.field.get(Position {
-            rank: Rank::One,
-            file: File::H,
-        });
+        let first_rook_tile = game.field.get(pos!(a1));
+        let second_rook_tile = game.field.get(pos!(h1));
         let white_rook = Tile::Occupied(Color::White, Figure::Rook);
         assert_eq!(first_rook_tile, white_rook);
         assert_eq!(second_rook_tile, white_rook);
+    }
+
+    #[test]
+    fn test_white_pawn_first_move() {
+        let game = Game::new();
+        let moves = game.moves_available(pos!(e2));
+        assert_eq!(moves, vec![pos!(e3), pos!(e4)]);
+    }
+
+    #[test]
+    fn test_white_pawn_second_move_or_capture() {
+        let mut game = Game::new();
+        game.make_move(pos!(e2), pos!(e4)).unwrap();
+        game.make_move(pos!(d7), pos!(d5)).unwrap();
+        let moves = game.moves_available(pos!(e4));
+        assert_eq!(moves, pos_list!(e5, d5));
+    }
+
+    #[test]
+    fn test_knight_moves() {
+        let mut game = Game::new();
+        game.make_move(pos!(b1), pos!(c3)).unwrap();
+        game.make_move(pos!(d7), pos!(d5)).unwrap();
+        let moves = game.moves_available(pos!(c3));
+        assert_eq!(moves, pos_list!(b1, a4, b5, d5, e4));
+    }
+
+    #[test]
+    fn test_bishop_moves() {
+        let mut game = Game::new();
+        game.make_move(pos!(e2), pos!(e3)).unwrap();
+        game.make_move(pos!(f7), pos!(f5)).unwrap();
+        game.make_move(pos!(f1), pos!(d3)).unwrap();
+        game.make_move(pos!(e7), pos!(e6)).unwrap();
+        let moves = game.moves_available(pos!(d3));
+        assert_eq!(moves, pos_list!(a6, b5, c4, e2, f1, e4, f5));
     }
 }
